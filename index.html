@@ -1,13 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>kyu nahi ho rahi padhai</title>
+  <title>High Level Project</title>
 </head>
-<body style="margin:0; background:black;">
 
-  <video autoplay muted loop playsinline style="width:100%; height:100vh; object-fit:cover;">
-    <source src="video.mp4" type="video/mp4">
-  </video>
+<body onclick="startMadness()" style="margin:0; background:black; cursor:pointer; overflow:hidden;">
+
+<h1 id="text" style="
+  position:absolute;
+  top:40%;
+  width:100%;
+  text-align:center;
+  color:white;
+  font-size:40px;
+">
+click for motivation
+</h1>
+
+<video id="bg" autoplay muted loop playsinline
+  style="width:100%; height:100vh; object-fit:cover;">
+  <source src="video.mp4" type="video/mp4">
+</video>
+
+<!-- SAME AUDIO MULTIPLE TIMES -->
+<audio id="a1" src="padhai.mp3"></audio>
+<audio id="a2" src="padhai.mp3"></audio>
+<audio id="a3" src="padhai.mp3"></audio>
+<audio id="a4" src="padhai.mp3"></audio>
+
+<script>
+function startMadness() {
+  const v = document.getElementById("bg");
+  v.muted = false;
+
+  document.getElementById("text").innerHTML = "KYU NAHI HO RAHI PADHAI 💀";
+
+  // play multiple overlapping sounds
+  let audios = [
+    document.getElementById("a1"),
+    document.getElementById("a2"),
+    document.getElementById("a3"),
+    document.getElementById("a4")
+  ];
+
+  audios.forEach((a, i) => {
+    a.volume = 1;
+
+    setTimeout(() => {
+      a.play();
+    }, i * 400); // slight delay = echo effect
+  });
+
+  // LOOP CHAOS
+  setInterval(() => {
+    let a = new Audio("padhai.mp3");
+    a.volume = 1;
+    a.play();
+  }, 1200);
+
+}
+</script>
 
 </body>
 </html>
