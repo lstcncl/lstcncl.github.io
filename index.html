@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>High Level Project</title>
+  <title>High Level Project - Viewer Discretion is adviced </title>
 </head>
 
 <body onclick="startMadness()" style="margin:0; background:black; cursor:pointer; overflow:hidden;">
@@ -13,8 +13,9 @@
   text-align:center;
   color:white;
   font-size:40px;
+  z-index:10;
 ">
-click for motivation
+click to start motivational videos
 </h1>
 
 <video id="bg" autoplay muted loop playsinline
@@ -22,42 +23,80 @@ click for motivation
   <source src="video.mp4" type="video/mp4">
 </video>
 
-<!-- SAME AUDIO MULTIPLE TIMES -->
-<audio id="a1" src="padhai.mp3"></audio>
-<audio id="a2" src="padhai.mp3"></audio>
-<audio id="a3" src="padhai.mp3"></audio>
-<audio id="a4" src="padhai.mp3"></audio>
-
 <script>
+let started = false;
+
 function startMadness() {
-  const v = document.getElementById("bg");
-  v.muted = false;
+  if (started) return;
+  started = true;
 
   document.getElementById("text").innerHTML = "KYU NAHI HO RAHI PADHAI 💀";
 
-  // play multiple overlapping sounds
-  let audios = [
-    document.getElementById("a1"),
-    document.getElementById("a2"),
-    document.getElementById("a3"),
-    document.getElementById("a4")
-  ];
+  const video = document.getElementById("bg");
+  video.muted = false;
 
-  audios.forEach((a, i) => {
-    a.volume = 1;
+  // AUDIO CONTEXT (for distortion)
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
-    setTimeout(() => {
-      a.play();
-    }, i * 400); // slight delay = echo effect
-  });
+  function playDistorted(delay, gainValue, distortionLevel, playbackRate) {
+    fetch("padhai.mp3")
+      .then(res => res.arrayBuffer())
+      .then(data => ctx.decodeAudioData(data))
+      .then(buffer => {
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
 
-  // LOOP CHAOS
+        // SPEED CHANGE (pitch effect)
+        source.playbackRate.value = playbackRate;
+
+        const gain = ctx.createGain();
+        gain.gain.value = gainValue;
+
+        const distortion = ctx.createWaveShaper();
+        distortion.curve = makeDistortionCurve(distortionLevel);
+        distortion.oversample = "4x";
+
+        // CONNECT: source → distortion → gain → output
+        source.connect(distortion);
+        distortion.connect(gain);
+        gain.connect(ctx.destination);
+
+        source.start(ctx.currentTime + delay);
+      });
+  }
+
+  // distortion curve generator
+  function makeDistortionCurve(amount) {
+    let k = typeof amount === 'number' ? amount : 50,
+        n_samples = 44100,
+        curve = new Float32Array(n_samples),
+        deg = Math.PI / 180;
+
+    for (let i = 0; i < n_samples; ++i) {
+      let x = i * 2 / n_samples - 1;
+      curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+    }
+    return curve;
+  }
+
+  // 🔊 INITIAL ECHO BURST
+  playDistorted(0,   1, 400, 1);    // normal distorted
+  playDistorted(0.3, 1, 800, 0.8);  // deeper
+  playDistorted(0.6, 1, 1000, 1.2); // high pitch
+  playDistorted(0.9, 1, 600, 0.6);  // slow creepy
+
+  // 💀 CONTINUOUS CHAOS LOOP
   setInterval(() => {
-    let a = new Audio("padhai.mp3");
-    a.volume = 1;
-    a.play();
+    let rate = 0.5 + Math.random() * 1.5;   // random pitch
+    let dist = 300 + Math.random() * 1200;  // random distortion
+    playDistorted(0, 1, dist, rate);
   }, 1200);
 
+  // 🔥 FLASHING BACKGROUND
+  setInterval(() => {
+    document.body.style.background =
+      document.body.style.background === "black" ? "red" : "black";
+  }, 200);
 }
 </script>
 
